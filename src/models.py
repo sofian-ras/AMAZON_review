@@ -28,7 +28,8 @@ class Params:
                 "SVC": {
                     'C': [0.1, 1, 10],
                     'kernel': ['linear', 'rbf'],
-                    'gamma': ['scale', 'auto']
+                    'gamma': ['scale', 'auto'],
+                    'probability' : True
                 },
 
                 "MultinomialNB": {
