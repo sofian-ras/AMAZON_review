@@ -1,7 +1,12 @@
 # src/features.py
 from sklearn.feature_extraction.text import TfidfVectorizer
-from config import TFIDF_PARAMS
 
+TFIDF_PARAMS = {
+    "max_features": 5000,
+    "ngram_range": (1, 2),
+    "min_df": 2,
+    "max_df": 0.8,
+}
 
 def get_tfidf_vectorizer():
     """
