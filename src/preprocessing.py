@@ -123,7 +123,7 @@ def main() -> None:
     print("✓ dépendances ok")
 
     parseur = argparse.ArgumentParser(description="phase 1 preprocessing amazon reviews")
-    parseur.add_argument("--chemin_entree", type=str, default="train.ft.txt", help="fichier .ft.txt (default: train.ft.txt)")
+    parseur.add_argument("--chemin_entree", type=str, default="data/train.ft.txt", help="fichier .ft.txt (default: data/train.ft.txt)")
     parseur.add_argument("--chemin_sortie_csv", type=str, default="data/prepared/p1_preprocessing.csv")
     parseur.add_argument("--chemin_sortie_stats", type=str, default="data/prepared/p1_preprocessing_stats.json")
     parseur.add_argument("--taille_subset", type=int, default=10000)
