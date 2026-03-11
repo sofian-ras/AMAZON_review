@@ -1,0 +1,38 @@
+# données brutes (trop volumineux)
+train.ft.txt
+test.ft.txt
+*.ft.txt
+
+# fichiers générés
+data/prepared/*.csv
+data/prepared/*.json
+data/prepared/*.pkl
+
+# cache python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# notebooks
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# modèles
+saved_models/
+models/
