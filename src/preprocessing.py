@@ -110,11 +110,17 @@ def nettoyer_texte(
 
 
 def main() -> None:
+    print("\n" + "="*80)
+    print("PHASE 1 : PREPROCESSING AMAZON REVIEWS")
+    print("="*80)
+    
     # 1) configuration et dépendances
+    print("\n[1/5] téléchargement des dépendances nltk...")
     # dépendances nltk obligatoires
     nltk.download("punkt_tab", quiet=True)
     nltk.download("stopwords", quiet=True)
     nltk.download("wordnet", quiet=True)
+    print("✓ dépendances ok")
 
     parseur = argparse.ArgumentParser(description="phase 1 preprocessing amazon reviews")
     parseur.add_argument("--chemin_entree", type=str, default="train.ft.txt", help="fichier .ft.txt (default: train.ft.txt)")
@@ -131,7 +137,7 @@ def main() -> None:
     if arguments.graine is None:
         arguments.graine = RANDOM_STATE
 
-
+    print(f"\n[2/5] lecture du fichier: {arguments.chemin_entree}...")
     # 2) chargement du dataset amazon
     # lecture du fichier amazon (.ft.txt)
     lignes_valides = []
@@ -164,8 +170,12 @@ def main() -> None:
     donnees = pd.DataFrame(lignes_valides)
     if donnees.empty:
         raise ValueError("aucune ligne exploitable dans le fichier d'entree")
+    
+    print(f"✓ {len(donnees):,} avis chargés")
+    print(f"  - {(donnees['label']==1).sum():,} négatifs")
+    print(f"  - {(donnees['label']==2).sum():,} positifs")
 
-
+    print(f"\n[3/5] nettoyage brut...")
     # 3) subset équilibré + nettoyage brut
     # subset équilibré (50/50) pour temps de calcul raisonnable
     if 0 < arguments.taille_subset < len(donnees):
@@ -182,9 +192,12 @@ def main() -> None:
     nb_apres_parse = len(donnees)
     donnees = donnees.drop_duplicates(subset=["avis_brut"]).reset_index(drop=True)
     nb_apres_doublons = len(donnees)
+    print(f"  • suppression doublons: {nb_apres_parse - nb_apres_doublons:,} lignes retirées")
 
     donnees["longueur_brut"] = donnees["avis_brut"].str.len()
+    nb_avant_longueur = len(donnees)
     donnees = donnees[donnees["longueur_brut"] >= 5].copy()
+    print(f"  • suppression avis trop courts (< 5 chars): {nb_avant_longueur - len(donnees):,} lignes retirées")
 
     # filtre bruit: supprimer avis composés presque uniquement de caractères spéciaux
     def calcul_ratio_speciaux(texte: str) -> float:
@@ -195,9 +208,13 @@ def main() -> None:
         return speciaux / total
 
     donnees["ratio_speciaux"] = donnees["avis_brut"].map(calcul_ratio_speciaux)
+    nb_avant_speciaux = len(donnees)
     donnees = donnees[donnees["ratio_speciaux"] <= 0.95].copy()
+    print(f"  • suppression avis trop bruités (> 95% spéciaux): {nb_avant_speciaux - len(donnees):,} lignes retirées")
+    print(f"✓ {len(donnees):,} avis après nettoyage brut")
 
 
+    print(f"\n[4/5] nettoyage linguistique (tokenisation, lemmatisation, stopwords)...")
     # 4) nettoyage linguistique
     # nettoyage linguistique
     resultats = donnees["avis_brut"].map(
@@ -216,12 +233,15 @@ def main() -> None:
     donnees["longueur_nettoye"] = donnees["avis_nettoye"].str.len()
 
     # retire les lignes devenues vides après nettoyage
+    nb_avant_final = len(donnees)
     donnees = donnees[donnees["avis_nettoye"].str.len() > 0].copy()
+    print(f"  • suppression avis devenues vides après nettoyage: {nb_avant_final - len(donnees):,}")
+    print(f"✓ nettoyage terminé")
+    print(f"  • tokens moyen par avis: {donnees['nb_tokens'].mean():.1f}")
 
-    # ============================================================
+
+    print(f"\n[5/5] export des résultats...")
     # 5) export des résultats
-    # ============================================================
-
     # export prêt pour les autres membres du groupe
     chemin_csv = Path(arguments.chemin_sortie_csv)
     chemin_stats = Path(arguments.chemin_sortie_stats)
@@ -244,9 +264,16 @@ def main() -> None:
     with open(chemin_stats, "w", encoding="utf-8") as fichier_stats:
         json.dump(stats, fichier_stats, ensure_ascii=False, indent=2)
 
-    print(f"fichier csv généré: {chemin_csv}")
-    print(f"fichier stats généré: {chemin_stats}")
-    print(f"lignes finales: {len(donnees)}")
+    print(f"\n✓ fichier csv généré: {chemin_csv}")
+    print(f"✓ fichier stats généré: {chemin_stats}")
+    print(f"\nRÉSUMÉ:")
+    print(f"  - {len(donnees):,} avis nettoyés et prêts")
+    print(f"  - {donnees[donnees['label']==1].shape[0]:,} négatifs")
+    print(f"  - {donnees[donnees['label']==2].shape[0]:,} positifs")
+    print(f"  - longueur moyenne (nettoyé): {donnees['longueur_nettoye'].mean():.0f} caractères")
+    print(f"\n" + "="*50)
+    print("✓ preprocessing terminé! prêt pour les features et modèles")
+    print("="*50 + "\n")
 
 
 if __name__ == "__main__":
